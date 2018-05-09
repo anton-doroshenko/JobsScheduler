@@ -1,0 +1,10 @@
+2
+1 7
+2 43
+3 78
+4 7
+
+
+/// these terms do not need to be entered
+2 - the number of cars
+7 - means that for work at number 1  the time is determined in 7 minutes

@@ -1,0 +1,79 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+<meta name="description" content="description"/>
+<meta name="keywords" content="keywords"/>
+<meta name="author" content="Arcsin, http://shablonfree.ru/"/>
+<link rel="stylesheet" type="text/css" href="../static/css/default.css"/>
+<title>Курсова робота</title>
+</head>
+<body>
+	<script type="text/javascript">
+      function Calculate()
+	  	{
+	         if(document.getElementById('first').checked)
+           {
+                alert("Ви вибрали алгоритм попарних перестановок")
+           }
+					 else if(document.getElementById('second').checked){
+	            alert("Ви вибрали алгоритм to do");
+           }
+        }
+        function Message()
+	    	{
+		       alert("Файл успішно завантажено!");
+		       alert("Виберіть алгоритм та нажаміть обрахувати");
+        }
+	</script>
+
+<div class="main">
+	<div class="container"><div class="inner_copy"><div class="inner_copy">Курсова робота</div></div>
+		<div class="gfx"><a href="#"><span></span></a></div>
+		<div class="menu">
+			<a href="/"><span>Тема курсової роботи</span></a>
+			<a href="solution"><span> Розв'язання задачі</span></a>
+			<a href="about"><span>Контактна інвормація</span></a>
+			<a href="task" id="last"><span>Завдання</span></a>
+		</div>
+		<div class="content">
+			<div class="item">
+				<h2 class ="center" >Завдання</h2>
+				<h1>1. Завантажити файл з даними</h1>
+                 <p> Після успішного завантаження файлу, вибрати алгоритм та нажати обрахувати </p>
+                    <form action="/download" method=post enctype=multipart/form-data>
+                      <input type=file name=file>
+                      <input type=submit value=Загрузити onclick="Message()">
+                     </form>
+                    <h1>1.1 Приклад файлу</h1>
+                    <p> 1.1.1) m - кількість машин </P>
+                    <p>     Роботи мають такі характеристики:</P>
+                    <p>     Кількість робіт (роботи будемо нумерувати числами від 1 до n);</P>
+
+                    <p> 1.1.2) p[i] -  тривалість виконання роботи i. </p>
+                    <p>     Початок файлу</p>
+                    <p>     Число m </p>
+                    <p>     Перехід на нову строку</p>
+
+                    <p>     Номер роботи і (від 1 до n) та час виконання</p>
+                    <p>     Після номеру роботи та часу виконнання нажати клафішу перехід на ному строку</p>
+                   <p></p>
+                  <a href="/static/example.txt"  ><span > Завантажити приклад</span></a>
+                 <p></p>
+                    <form>
+                      <h1>Виберіть алгоритм</h1>
+                      <p><input type="radio"  id="first" name="choice" value="permutation" checked>Попрані перестановки<br>
+                      <input type="radio" id="second" name="choice" value="another">To do/...<br>
+                      <p><input type="submit"  value=Обрахувати onclick="Calculate()" ></p>
+                     </form>
+				</div>
+			<div class="item">
+				<h1>2. Згенерувати дані для задачі</h1>
+                <h1>tO do...</h1>
+			</div>
+		<div class="footer">
+		</div>
+	</div>
+</div>
+</body>
+</html>

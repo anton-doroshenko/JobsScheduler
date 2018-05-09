@@ -2,6 +2,39 @@
 import os, sys
 import numpy as np
 import math
+import csv
+
+def read_file(path):
+    jobs = []
+    with open(path, 'r') as f:
+        machines_quantity = int(f.readline().rstrip())
+        for row in f:
+            s = row.rstrip().split(' ')
+            job = (int(s[0]), int(s[1]))
+            jobs.append(job)
+        jobs = np.array(jobs, dtype=[('index', '<i4'), ('time', '<i4')])
+    return jobs, machines_quantity
+
+def write_file(path, schedule):
+    fieldnames = ["machine_%d" % i for i in range(schedule.shape[1])]
+    fieldnames.insert(0, 'queue_num')
+    print(fieldnames)
+    row = {}
+    with open(path, 'w') as csvfile:
+        csvfile.write("sep=,\n")
+        writer = csv.DictWriter(csvfile, fieldnames)
+        writer.writeheader()
+        for i in range(schedule.shape[0]):
+            row[fieldnames[0]] = str(i)
+            for j in range(len(fieldnames) - 1):
+                if schedule[i][j]['time'] != 0:
+                    row[fieldnames[j + 1]] = schedule[i][j]
+                else:
+                    row[fieldnames[j + 1]] = None
+            writer.writerow(row)
+
+
+
 
 def spt_algorithm(jobs, machines_quantity):
     '''
@@ -113,16 +146,25 @@ def swapping_method(schedule, jobs_quantity):
 
     if jobs_quantity % columns_quantity != 0:
         add_swap_iteration(schedule)
+        new_max_len = max_len(schedule, columns_quantity)[1]
+        if cur_max_len != new_max_len:
+            cur_max_len = new_max_len
+            swapping_method(schedule, jobs_quantity)
+
+
     print('Iterations:', i)
     return schedule
 
 def main():
-    jobs = np.array([(1, 12),(2, 14), (3, 15), (4, 12), (5, 16),
-                     (6, 12), (7, 12), (8, 23), (9, 13), (10, 15),
-                     (11, 21), (12, 23), (13, 24), (14, 12), (15, 29)],
-                    dtype=[('index', '<i4'), ('time', '<i4')])
+    data = read_file('/home/anton/testfile')
+    jobs = data[0]
+    machines_quantity = data[1]
+    #jobs = np.array([(1, 12),(2, 14), (3, 15), (4, 12), (5, 16),
+    #                 (6, 12), (7, 12), (8, 23), (9, 13), (10, 15),
+    #                 (11, 21), (12, 23), (13, 24), (14, 12), (15, 29)],
+    #                dtype=[('index', '<i4'), ('time', '<i4')])
 
-    machines_quantity = 4
+    #machines_quantity = 4
     opt = math.ceil(np.sum(jobs['time']) / machines_quantity)
     schedule = spt_algorithm(jobs, machines_quantity)
     print(schedule)
@@ -131,6 +173,8 @@ def main():
     print(schedule)
     print()
     print(opt, max_len(schedule, machines_quantity)[1])
+
+    write_file("/home/anton/csvfile.csv", schedule)
 
 if __name__ == "__main__":
     main()
