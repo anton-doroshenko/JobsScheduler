@@ -3,6 +3,7 @@ import os, sys
 import numpy as np
 import math
 import csv
+import random
 
 def read_file(path):
     jobs = []
@@ -15,13 +16,19 @@ def read_file(path):
         jobs = np.array(jobs, dtype=[('index', '<i4'), ('time', '<i4')])
     return jobs, machines_quantity
 
-def write_file(path, schedule):
+def write_file(path, schedule, opt = 0):
+    cur_opt = max_len(schedule, schedule.shape[1])[1]
     fieldnames = ["machine_%d" % i for i in range(schedule.shape[1])]
     fieldnames.insert(0, 'queue_num')
     print(fieldnames)
+    print(cur_opt)
     row = {}
-    with open(path, 'w') as csvfile:
-        csvfile.write("sep=,\n")
+    with open(path, 'a+') as csvfile:
+        csvfile.seek(0)
+        if csvfile.readline() == '':
+            csvfile.write("sep=,\n")
+        csvfile.write("Идеальное время выполнения %d\n" % opt)
+        csvfile.write("Текущее значение максимального времени выполнения: %d\n" % cur_opt)
         writer = csv.DictWriter(csvfile, fieldnames)
         writer.writeheader()
         for i in range(schedule.shape[0]):
@@ -32,9 +39,6 @@ def write_file(path, schedule):
                 else:
                     row[fieldnames[j + 1]] = None
             writer.writerow(row)
-
-
-
 
 def spt_algorithm(jobs, machines_quantity):
     '''
@@ -155,26 +159,137 @@ def swapping_method(schedule, jobs_quantity):
     print('Iterations:', i)
     return schedule
 
+def optimal(jobs, machines_quantity):
+    return math.ceil(np.sum(jobs['time']) / machines_quantity)
+
+def random_inicialisation(left_machines_quantity  = 4, right_machines_quantity = 5, left_jobs_quantity = 100, right_jobs_quantity = 300):
+    machines_quantity = np.random.random_integers(left_machines_quantity, right_machines_quantity)
+    jobs_quantity = np.random.random_integers(left_jobs_quantity, right_jobs_quantity)
+    jobs = []
+    for i in range(jobs_quantity):
+        job = (i+1, np.random.random_integers(1, 30))
+        jobs.append(job)
+    jobs = np.array(jobs, dtype=[('index', '<i4'), ('time', '<i4')])
+    print(jobs)
+    return jobs, machines_quantity
+
+def put_first_to_the_end(schedule, depth):
+    row = schedule[depth,].tolist()
+    row.append(row.pop(0))
+    row = np.array(row, dtype=[('index', '<i4'), ('time', '<i4')])
+    schedule[depth,] = row
+    return schedule
+
+def population_quantity(jobs_n, machines_quantity, probability):
+    q = math.ceil(jobs_n / machines_quantity)
+    n = 1 + math.log((1 / (1 - probability ** (1 / q))), machines_quantity)
+    return math.ceil(n)
+
+def mutation_probability(jobs_n, machines_quantity, population_quantity):
+    q = math.ceil(jobs_n / machines_quantity)
+    p = q * (1 - (1 - 10 * (1 / machines_quantity) ** (population_quantity - 1)) ** (1 / population_quantity))
+    return p
+
+def create_population(schedule, population_quantity, depth = 0, population = []):
+    max_depth = schedule.shape[0] - 1
+    machines_quantity = schedule.shape[1] - 1
+    if len(population) >= population_quantity:
+        return population
+    if depth == 0:
+        population = create_population(schedule, population_quantity, depth + 1, population)
+    else:
+        population.append(schedule.copy())
+    if depth >= max_depth:
+        return population
+    else:
+        for i in range(machines_quantity):
+            schedule = put_first_to_the_end(schedule, depth)
+            population = create_population(schedule, population_quantity, depth + 1, population)
+        return population
+
+def select_parents(population):
+    parents = random.sample(population, 2)
+    return parents
+def crossoving(parents, queue_num):
+    k = np.random.random_integers(1, queue_num)
+    first_child = np.append(parents[0][0:k,], parents[1][k:,], axis = 0)
+    second_child = np.append(parents[1][0:k,], parents[0][k:,], axis = 0)
+    return first_child, second_child
+
+def mutation(childs, p, queue_num, machines_quantity):
+    for child in childs:
+        if random.random() < p:
+            queue = np.random.random_integers(1, queue_num - 1)
+            mach_indexes = random.sample(range(machines_quantity), 2)
+            temp = child[queue, mach_indexes[0]].copy()
+            child[queue, mach_indexes[0]] = child[queue, mach_indexes[1]]
+            child[queue, mach_indexes[1]] = temp
+    return childs
+
+def new_population(population, sizes, childs, machines_quantity):
+    for child in childs:
+        child_length = max_len(child, machines_quantity)[1]
+        cur_max_length = max(sizes)
+        cur_max_index = sizes.index(cur_max_length)
+        if child_length < cur_max_length:
+            population[cur_max_index] = child
+            sizes[cur_max_index] = child_length
+
+def genetic_algorithm(schedule, jobs_quantity, opt):
+    queue_num = schedule.shape[0]
+    machines_quantity = schedule.shape[1]
+    n = population_quantity(jobs_quantity, machines_quantity, 0.7)#размер популяции
+    p = mutation_probability(jobs_quantity, machines_quantity, n)#вероятность мутации
+    population = create_population(schedule, n)
+    sizes = []#список максимальных моментов окончания работ екземпляров популяции
+    for item in population:
+        sizes.append(max_len(item, machines_quantity)[1])
+    for i in range(10):
+        if opt in sizes:
+            return population[sizes.index(opt)]
+        parents = select_parents(population)
+        childs = crossoving(parents, queue_num)
+        childs = mutation(childs, p, queue_num, machines_quantity)
+        new_population(population, sizes, childs, machines_quantity)
+    return population[sizes.index(min(sizes))]
+
 def main():
-    data = read_file('/home/anton/testfile')
+    #data = read_file('/media/anton/Ubuntu/GitWorkDir/JobsScheduler/tmp/input_data')
+    data = random_inicialisation()
     jobs = data[0]
     machines_quantity = data[1]
-    #jobs = np.array([(1, 12),(2, 14), (3, 15), (4, 12), (5, 16),
-    #                 (6, 12), (7, 12), (8, 23), (9, 13), (10, 15),
-    #                 (11, 21), (12, 23), (13, 24), (14, 12), (15, 29)],
+    #jobs = np.array([(1, 1),(2, 2), (3, 3), (4, 4), (5, 5),
+    #                 (6, 6), (7, 7), (8, 8), (9, 9), (10, 10),
+    #                 (11, 11), (12, 12)],
     #                dtype=[('index', '<i4'), ('time', '<i4')])
 
-    #machines_quantity = 4
+    #machines_quantity = 3
     opt = math.ceil(np.sum(jobs['time']) / machines_quantity)
     schedule = spt_algorithm(jobs, machines_quantity)
+    write_file("/home/anton/csvfile.csv", schedule, opt)
     print(schedule)
+    print(opt)
     print()
-    schedule = swapping_method(schedule, len(jobs))
+    schedule_1 = schedule.copy()
+    schedule_1 = swapping_method(schedule_1, len(jobs))
+    print(schedule_1)
     print(schedule)
+    print(max_len(schedule_1, machines_quantity)[1])
     print()
-    print(opt, max_len(schedule, machines_quantity)[1])
+    schedule_2 = schedule.copy()
+    schedule_2 = genetic_algorithm(schedule_2, len(jobs), opt)
+    print(schedule_2)
+    print(schedule)
+    print(max_len(schedule_2, machines_quantity)[1])
 
-    write_file("/home/anton/csvfile.csv", schedule)
+
+    #print(schedule)
+    #print()
+    #print(opt, max_len(schedule, machines_quantity)[1])
+
+    write_file("/home/anton/csvfile.csv", schedule_1, opt)
+    write_file("/home/anton/csvfile.csv", schedule_2, opt)
+
 
 if __name__ == "__main__":
     main()
