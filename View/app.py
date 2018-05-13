@@ -45,10 +45,27 @@ def solution():
 
         return send_from_directory('/home/anton', 'csvfile.csv')
     if request.args.get('choice') == 'another':
-
-        pass
-        #return send_from_directory('C:/Users/User/PycharmProjects/untitled/static', 'task.docx')
-
+        ########################################################
+        data = algorithms.read_file(UPLOAD_FOLDER + '/input_data')
+        jobs = data[0]
+        machines_quantity = data[1]
+        opt = algorithms.optimal(jobs, machines_quantity)
+        schedule = algorithms.spt_algorithm(jobs, machines_quantity)
+        algorithms.write_file("/home/anton/csvfile.csv", schedule, opt)
+        print(schedule)
+        print()
+        schedule = algorithms.genetic_algorithm(schedule, len(jobs), opt)
+        print(schedule)
+        print()
+        #print(opt, max_len(schedule, machines_quantity)[1])
+        algorithms.write_file("/home/anton/csvfile.csv", schedule, opt)
+        ########################################################
+        @after_this_request
+        def remove_file(response):
+            if os.path.isfile("/home/anton/csvfile.csv"):
+                os.remove("/home/anton/csvfile.csv")
+            return response
+        return send_from_directory('/home/anton', 'csvfile.csv')
     return render_template('solution.html')
 
 @app.route('/about')
@@ -62,7 +79,6 @@ def task():
 @app.route('/generation')
 def Generation():
     if request.args.get('choice') == 'permutation':
-        print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
         #######################################################
         data = algorithms.random_inicialisation()
         jobs = data[0]
@@ -85,10 +101,27 @@ def Generation():
             return response
         return send_from_directory('/home/anton', 'csvfile.csv')
     if request.args.get('choice') == 'another':
-        pass
-        #return send_from_directory('C:/Users/User/PycharmProjects/untitled/static', 'task.docx')
+        ########################################################
+        data = algorithms.random_inicialisation()
+        jobs = data[0]
+        machines_quantity = data[1]
+        opt = algorithms.optimal(jobs, machines_quantity)
+        schedule = algorithms.spt_algorithm(jobs, machines_quantity)
+        algorithms.write_file("/home/anton/csvfile.csv", schedule, opt)
+        print(schedule)
         print()
-    print()
+        schedule = algorithms.genetic_algorithm(schedule, len(jobs), opt)
+        print(schedule)
+        print()
+        #print(opt, max_len(schedule, machines_quantity)[1])
+        algorithms.write_file("/home/anton/csvfile.csv", schedule, opt)
+        ########################################################
+        @after_this_request
+        def remove_file(response):
+            if os.path.isfile("/home/anton/csvfile.csv"):
+                os.remove("/home/anton/csvfile.csv")
+            return response
+        return send_from_directory('/home/anton', 'csvfile.csv')
     return render_template('generation.html')
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -113,9 +146,5 @@ def upload_file():
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-
-
-
-
 if __name__ == '__main__':
-    app.run(port=5001)
+    app.run(port=5000)
