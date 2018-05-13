@@ -8,18 +8,27 @@
 <link rel="stylesheet" type="text/css" href="../static/css/default.css"/>
 <title>Курсова робота</title>
 </head>
-
 <body>
-
 	<script type="text/javascript">
-
-
-      function f42()
-	  {
-
-	         alert("to do !");
-
+      function Calculate()
+	  	{
+	         if(document.getElementById('first').checked)
+           {
+                alert("Ви вибрали алгоритм попарних перестановок")
+           }
+					 else if(document.getElementById('second').checked){
+	            alert("Ви вибрали алгоритм to do");
+           }
         }
+        function Message()
+	    	{
+		       alert("Файл успішно завантажено!");
+		       alert("Виберіть алгоритм та нажаміть обрахувати");
+        }
+				function Generate()
+				{
+					  alert("Вибрана генерация даних");
+				}
 	</script>
 
 <div class="main">
@@ -34,14 +43,20 @@
 		</div>
 		<div class="content">
 			<div class="item">
-				<h1 class ="center">Курсова робота</h1>
-				<h2 class ="center">Тема:</h2>
-                <p class ="center">Двокритеріальна задача складання розкладу виконання робіт паралельними ідентичними машинами</p>
+				<h2 class ="center" >Дослідження</h2>
+					<h1> Згенерувати дані для задачі</h1>
 				</div>
-		</div>
+			<div class="item">
+				<form>
+					<h1>Виберіть алгоритм для генерарації</h1>
+					<p><input type="radio"  id="first" name="choice" value="permutation" checked>Попрані перестановки<br>
+					<input type="radio" id="second" name="choice" value="another">To do/...<br>
+					<p><input type="submit"   value=Згенерувати onclick="Generate()" ></p>
+				 </form>
+
+
+			</div>
 		<div class="footer">
-
-
 		</div>
 	</div>
 </div>

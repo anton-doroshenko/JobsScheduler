@@ -21,7 +21,7 @@ body {
 	border-color:#E4E4E4 #CFCFCF #CCC #CFCFCF;
 	margin:20px auto 4px auto;
 	text-align:	left;
-	width:620px}
+	width:100px}
 .container {margin:10px}
 /* menu */
 .Headers{
@@ -33,12 +33,14 @@ body {
 	border-top:1px solid #E5E5E5;
 	color:#888;
 	float:left;padding-top:4px;
-	width:149px;
-	height:36px}
+	width:111px;
+	height:36px;
+	text-align: center;
+}
 .menu a span {padding-left:6px}
 .menu a:hover {background:#EEE url(img/bgmenu.gif) repeat-x;
 color:#555}
-.menu a#last {width:150px;
+.menu a#last {width:100px;
 border-right:none}
 /* content */
 

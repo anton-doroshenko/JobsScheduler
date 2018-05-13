@@ -2,14 +2,14 @@ import os
 
 from flask import send_from_directory
 from flask import Flask, render_template, request
-from flask import redirect, url_for
+from flask import redirect, url_for, after_this_request
 from werkzeug.utils import secure_filename
 
 import sys
 sys.path.insert(0, r'/media/anton/Ubuntu/GitWorkDir/JobsScheduler/Model')
 import algorithms
 
-UPLOAD_FOLDER = '/media/anton/Ubuntu/GitWorkDir/untitled/tmp/'
+UPLOAD_FOLDER = '/media/anton/Ubuntu/GitWorkDir/JobsScheduler/tmp/'
 ALLOWED_EXTENSIONS = set(['txt'])
 app = Flask(__name__)
 
@@ -19,32 +19,36 @@ def index():
 
 @app.route('/solution')
 def solution():
+
     if request.args.get('choice') == 'permutation':
+
         #######################################################
         data = algorithms.read_file(UPLOAD_FOLDER + '/input_data')
         jobs = data[0]
         machines_quantity = data[1]
-        #jobs = np.array([(1, 12),(2, 14), (3, 15), (4, 12), (5, 16),
-        #                 (6, 12), (7, 12), (8, 23), (9, 13), (10, 15),
-        #                 (11, 21), (12, 23), (13, 24), (14, 12), (15, 29)],
-        #                dtype=[('index', '<i4'), ('time', '<i4')])
-
-        #machines_quantity = 4
-        #opt = math.ceil(np.sum(jobs['time']) / machines_quantity)
+        opt = algorithms.optimal(jobs, machines_quantity)
         schedule = algorithms.spt_algorithm(jobs, machines_quantity)
+        algorithms.write_file("/home/anton/csvfile.csv", schedule, opt)
         print(schedule)
         print()
         schedule = algorithms.swapping_method(schedule, len(jobs))
         print(schedule)
         print()
         #print(opt, max_len(schedule, machines_quantity)[1])
-        algorithms.write_file("/home/anton/csvfile.csv", schedule)
+        algorithms.write_file("/home/anton/csvfile.csv", schedule, opt)
         ########################################################
+        @after_this_request
+        def remove_file(response):
+            if os.path.isfile("/home/anton/csvfile.csv"):
+                os.remove("/home/anton/csvfile.csv")
+            return response
 
         return send_from_directory('/home/anton', 'csvfile.csv')
     if request.args.get('choice') == 'another':
+
         pass
         #return send_from_directory('C:/Users/User/PycharmProjects/untitled/static', 'task.docx')
+
     return render_template('solution.html')
 
 @app.route('/about')
@@ -53,6 +57,39 @@ def about():
 @app.route('/task')
 def task():
     return  render_template('task.html')
+
+
+@app.route('/generation')
+def Generation():
+    if request.args.get('choice') == 'permutation':
+        print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+        #######################################################
+        data = algorithms.random_inicialisation()
+        jobs = data[0]
+        machines_quantity = data[1]
+        opt = algorithms.optimal(jobs, machines_quantity)
+        schedule = algorithms.spt_algorithm(jobs, machines_quantity)
+        algorithms.write_file("/home/anton/csvfile.csv", schedule, opt)
+        print(schedule)
+        print()
+        schedule = algorithms.swapping_method(schedule, len(jobs))
+        print(schedule)
+        print()
+        #print(opt, max_len(schedule, machines_quantity)[1])
+        algorithms.write_file("/home/anton/csvfile.csv", schedule, opt)
+        ########################################################
+        @after_this_request
+        def remove_file(response):
+            if os.path.isfile("/home/anton/csvfile.csv"):
+                os.remove("/home/anton/csvfile.csv")
+            return response
+        return send_from_directory('/home/anton', 'csvfile.csv')
+    if request.args.get('choice') == 'another':
+        pass
+        #return send_from_directory('C:/Users/User/PycharmProjects/untitled/static', 'task.docx')
+        print()
+    print()
+    return render_template('generation.html')
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -76,5 +113,9 @@ def upload_file():
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+
+
+
+
 if __name__ == '__main__':
-    app.run()
+    app.run(port=5001)
